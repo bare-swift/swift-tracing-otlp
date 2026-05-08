@@ -17,4 +17,64 @@ enum EncodeTraces {
         w.writeEnum(s.code.rawValue, fieldNumber: 3)
         return w.finish()
     }
+
+    // MARK: - Span (16 fields)
+    static func encodeSpan(_ s: OTLP.Span) -> Bytes {
+        var w = ProtoWriter()
+        // field 1 trace_id (bytes)
+        w.writeBytes(s.traceID, fieldNumber: 1)
+        // field 2 span_id (bytes)
+        w.writeBytes(s.spanID, fieldNumber: 2)
+        // field 3 trace_state (string)
+        w.writeString(s.traceState, fieldNumber: 3)
+        // field 4 parent_span_id (bytes)
+        w.writeBytes(s.parentSpanID, fieldNumber: 4)
+        // field 5 name (string)
+        w.writeString(s.name, fieldNumber: 5)
+        // field 6 kind (enum)
+        w.writeEnum(s.kind.rawValue, fieldNumber: 6)
+        // field 7 start_time_unix_nano (fixed64)
+        w.writeFixed64(s.startTimeUnixNano, fieldNumber: 7)
+        // field 8 end_time_unix_nano (fixed64)
+        w.writeFixed64(s.endTimeUnixNano, fieldNumber: 8)
+        // field 9 attributes (repeated KeyValue)
+        for kv in s.attributes {
+            let kvb = EncodeCommon.encodeKeyValue(kv)
+            w.writeMessage(kvb, fieldNumber: 9)
+        }
+        // field 10 dropped_attributes_count (uint32)
+        w.writeUInt32(s.droppedAttributesCount, fieldNumber: 10)
+        // field 11 events (repeated Event)
+        for e in s.events {
+            let eb = encodeSpanEvent(e)
+            w.writeMessage(eb, fieldNumber: 11)
+        }
+        // field 12 dropped_events_count (uint32)
+        w.writeUInt32(s.droppedEventsCount, fieldNumber: 12)
+        // field 13 links (repeated Link)
+        for l in s.links {
+            let lb = encodeSpanLink(l)
+            w.writeMessage(lb, fieldNumber: 13)
+        }
+        // field 14 dropped_links_count (uint32)
+        w.writeUInt32(s.droppedLinksCount, fieldNumber: 14)
+        // field 15 status (message)
+        let statusBytes = encodeStatus(s.status)
+        if !statusBytes.isEmpty {
+            w.writeMessage(statusBytes, fieldNumber: 15)
+        }
+        // field 16 flags (fixed32)
+        w.writeFixed32(s.flags, fieldNumber: 16)
+        return w.finish()
+    }
+
+    /// Placeholder — implemented in Task 10.
+    static func encodeSpanEvent(_ e: OTLP.Span.Event) -> Bytes {
+        Bytes()
+    }
+
+    /// Placeholder — implemented in Task 10.
+    static func encodeSpanLink(_ l: OTLP.Span.Link) -> Bytes {
+        Bytes()
+    }
 }
