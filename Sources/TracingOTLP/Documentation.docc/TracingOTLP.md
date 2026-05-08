@@ -1,13 +1,35 @@
 # ``TracingOTLP``
 
-One-line summary of what TracingOTLP provides.
+Sendable, Foundation-free OpenTelemetry OTLP encoder for traces over HTTP+protobuf.
 
 ## Overview
 
-A short paragraph describing what this module does, who would use it, and what it explicitly does not do.
+`swift-tracing-otlp` produces ready-to-send HTTP request bodies in the
+OTLP/protobuf wire format for the **traces** signal. Pure encoder — no
+HTTP transport, no sampling. Caller wires their HTTP client of choice
+and sends the returned `Bytes` to `POST /v1/traces` with
+`Content-Type: application/x-protobuf`.
+
+Companion to [swift-otlp-exporter](https://github.com/bare-swift/swift-otlp-exporter) (metrics signal). The `OTLP` namespace is defined by swift-otlp-exporter; this package extends it with trace-specific types and re-uses the common types (`OTLP.Resource`, `OTLP.InstrumentationScope`, `OTLP.KeyValue`, `OTLP.AnyValue`).
+
+```swift
+import OTLPExporter
+import TracingOTLP
+
+let request = OTLP.ExportTraceServiceRequest(resourceSpans: [
+    // ... build OTLP-shaped trace data ...
+])
+let payload = OTLP.encodeTraces(request)  // Bytes ready for HTTP POST
+```
+
+The public Swift types mirror the OTLP proto schema 1:1.
 
 ## Topics
 
-### Essentials
+### Top-level
 
-- _(Add public types / functions here as the API grows.)_
+- ``TracingOTLP``
+
+### Errors
+
+- ``TracingOTLPError``

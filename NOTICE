@@ -4,5 +4,26 @@ Copyright (c) 2026 The bare-swift Project Authors.
 This product is licensed under the Apache License, Version 2.0, with LLVM
 exceptions. See LICENSE for details.
 
-This product includes software derived from the Rust crate `tracing-otlp`.
-See https://crates.io/crates/tracing-otlp for the original sources and license.
+The OpenTelemetry OTLP wire format and proto schema are defined by the
+OpenTelemetry project:
+
+  opentelemetry-proto — https://github.com/open-telemetry/opentelemetry-proto
+                       (Apache-2.0)
+
+The Swift implementation is original; no upstream source is included or
+generated. Field numbers and message structures are encoded by hand against
+the proto schema.
+
+This product depends on:
+
+  swift-bytes         (https://github.com/bare-swift/swift-bytes,
+                        Apache-2.0 with LLVM exception)
+  swift-varint        (https://github.com/bare-swift/swift-varint,
+                        Apache-2.0 with LLVM exception)
+  swift-otlp-exporter (https://github.com/bare-swift/swift-otlp-exporter,
+                        Apache-2.0 with LLVM exception)
+
+The proto-encoding internals (ProtoWriter, per-message Common encoders) are
+intentionally duplicated from swift-otlp-exporter; this package extends the
+same OTLP namespace with trace-specific types and re-uses the public common
+types (Resource, InstrumentationScope, KeyValue, AnyValue).

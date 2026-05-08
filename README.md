@@ -1,18 +1,18 @@
 # swift-tracing-otlp
 
-_(One-sentence tagline goes here.)_
+Sendable, Foundation-free [OpenTelemetry OTLP](https://opentelemetry.io/docs/specs/otlp/) wire-format encoder for **traces** over HTTP+protobuf.
 
-Part of the [bare-swift](https://github.com/bare-swift) ecosystem.
+Pure encoder — no transport, no sampling. Output is [`Bytes`](https://github.com/bare-swift/swift-bytes) ready as the body of an `HTTP POST /v1/traces` request to an OTLP collector with `Content-Type: application/x-protobuf`.
+
+Companion to [swift-otlp-exporter](https://github.com/bare-swift/swift-otlp-exporter) (metrics signal). Together they cover the metrics+traces half of OpenTelemetry's signal set.
+
+Part of the [bare-swift](https://github.com/bare-swift) ecosystem. Phase 3 Tranche 3A.
 
 ## Install
-
-Add to your `Package.swift`:
 
 ```swift
 .package(url: "https://github.com/bare-swift/swift-tracing-otlp.git", from: "0.1.0")
 ```
-
-Then depend on the `TracingOTLP` product:
 
 ```swift
 .product(name: "TracingOTLP", package: "swift-tracing-otlp")
@@ -21,18 +21,60 @@ Then depend on the `TracingOTLP` product:
 ## Usage
 
 ```swift
-import TracingOTLP
+import OTLPExporter   // re-uses Resource, InstrumentationScope, KeyValue, AnyValue
+import TracingOTLP    // adds Span, ResourceSpans, ScopeSpans, ExportTraceServiceRequest
+import Bytes
 
-// _(≤30-line working example. Replace this comment with the real example.)_
+let request = OTLP.ExportTraceServiceRequest(resourceSpans: [
+    OTLP.ResourceSpans(
+        resource: OTLP.Resource(attributes: [
+            OTLP.KeyValue(key: "service.name", value: .string("api"))
+        ]),
+        scopeSpans: [
+            OTLP.ScopeSpans(
+                scope: OTLP.InstrumentationScope(name: "myapp", version: "1.0"),
+                spans: [
+                    {
+                        var span = OTLP.Span(
+                            traceID: Bytes([
+                                0x4b,0xf9,0x2f,0x35,0x77,0xb3,0x4d,0xa6,
+                                0xa3,0xce,0x92,0x9d,0x0e,0x0e,0x47,0x36
+                            ]),
+                            spanID: Bytes([
+                                0x00,0xf0,0x67,0xaa,0x0b,0xa9,0x02,0xb7
+                            ]),
+                            name: "GET /api/users",
+                            kind: .server,
+                            startTimeUnixNano: 1_700_000_000_000_000_000,
+                            endTimeUnixNano:   1_700_000_000_500_000_000
+                        )
+                        span.attributes = [.init(key: "http.method", value: .string("GET"))]
+                        span.status = OTLP.Status(code: .ok)
+                        return span
+                    }()
+                ]
+            )
+        ]
+    )
+])
+
+let payload: Bytes = OTLP.encodeTraces(request)
+// HTTP POST /v1/traces, Content-Type: application/x-protobuf, body = payload.storage
 ```
+
+## Code-sharing with swift-otlp-exporter
+
+The `OTLP` namespace is defined by swift-otlp-exporter; this package extends it with trace-specific types. Common types (`OTLP.Resource`, `OTLP.InstrumentationScope`, `OTLP.KeyValue`, `OTLP.AnyValue`) come from swift-otlp-exporter and are re-used directly. The proto-encoding internals (`ProtoWriter`, per-message common encoders) are intentionally duplicated to keep this package independently shippable. Wire format produced is byte-identical for the shared message types.
+
+## Scope
+
+**v0.1 covers:** OTLP traces over HTTP+protobuf. Full Span schema (16 fields including events and links), all 6 SpanKind values, Status with all 3 codes.
+
+**Out of scope (deferred):** gRPC OTLP, JSON OTLP, HTTP transport itself, decoder, sampling, trace/span ID generation, Apple swift-distributed-tracing adapter (Tranche 3B's separate package).
 
 ## Documentation
 
 Full DocC documentation: <https://bare-swift.github.io/swift-tracing-otlp/>
-
-## Source
-
-Translated from the Rust crate [`tracing-otlp`](https://crates.io/crates/tracing-otlp).
 
 ## License
 
