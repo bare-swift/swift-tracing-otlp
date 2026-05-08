@@ -68,13 +68,41 @@ enum EncodeTraces {
         return w.finish()
     }
 
-    /// Placeholder — implemented in Task 10.
+    // MARK: - Span.Event
     static func encodeSpanEvent(_ e: OTLP.Span.Event) -> Bytes {
-        Bytes()
+        var w = ProtoWriter()
+        // field 1 time_unix_nano (fixed64)
+        w.writeFixed64(e.timeUnixNano, fieldNumber: 1)
+        // field 2 name (string)
+        w.writeString(e.name, fieldNumber: 2)
+        // field 3 attributes (repeated KeyValue)
+        for kv in e.attributes {
+            let kvb = EncodeCommon.encodeKeyValue(kv)
+            w.writeMessage(kvb, fieldNumber: 3)
+        }
+        // field 4 dropped_attributes_count (uint32)
+        w.writeUInt32(e.droppedAttributesCount, fieldNumber: 4)
+        return w.finish()
     }
 
-    /// Placeholder — implemented in Task 10.
+    // MARK: - Span.Link
     static func encodeSpanLink(_ l: OTLP.Span.Link) -> Bytes {
-        Bytes()
+        var w = ProtoWriter()
+        // field 1 trace_id (bytes)
+        w.writeBytes(l.traceID, fieldNumber: 1)
+        // field 2 span_id (bytes)
+        w.writeBytes(l.spanID, fieldNumber: 2)
+        // field 3 trace_state (string)
+        w.writeString(l.traceState, fieldNumber: 3)
+        // field 4 attributes (repeated KeyValue)
+        for kv in l.attributes {
+            let kvb = EncodeCommon.encodeKeyValue(kv)
+            w.writeMessage(kvb, fieldNumber: 4)
+        }
+        // field 5 dropped_attributes_count (uint32)
+        w.writeUInt32(l.droppedAttributesCount, fieldNumber: 5)
+        // field 6 flags (fixed32)
+        w.writeFixed32(l.flags, fieldNumber: 6)
+        return w.finish()
     }
 }
