@@ -105,4 +105,64 @@ enum EncodeTraces {
         w.writeFixed32(l.flags, fieldNumber: 6)
         return w.finish()
     }
+
+    // MARK: - ScopeSpans
+    static func encodeScopeSpans(_ ss: OTLP.ScopeSpans) -> Bytes {
+        var w = ProtoWriter()
+        // field 1 scope (message); omit if empty
+        let scopeBytes = EncodeCommon.encodeInstrumentationScope(ss.scope)
+        if !scopeBytes.isEmpty {
+            w.writeMessage(scopeBytes, fieldNumber: 1)
+        }
+        // field 2 spans (repeated)
+        for span in ss.spans {
+            let sb = encodeSpan(span)
+            w.writeMessage(sb, fieldNumber: 2)
+        }
+        // field 3 schema_url
+        w.writeString(ss.schemaURL, fieldNumber: 3)
+        return w.finish()
+    }
+
+    // MARK: - ResourceSpans
+    static func encodeResourceSpans(_ rs: OTLP.ResourceSpans) -> Bytes {
+        var w = ProtoWriter()
+        // field 1 resource (message); omit if empty
+        let resourceBytes = EncodeCommon.encodeResource(rs.resource)
+        if !resourceBytes.isEmpty {
+            w.writeMessage(resourceBytes, fieldNumber: 1)
+        }
+        // field 2 scope_spans (repeated)
+        for ss in rs.scopeSpans {
+            let ssb = encodeScopeSpans(ss)
+            w.writeMessage(ssb, fieldNumber: 2)
+        }
+        // field 3 schema_url
+        w.writeString(rs.schemaURL, fieldNumber: 3)
+        return w.finish()
+    }
+
+    // MARK: - ExportTraceServiceRequest
+    static func encodeExportTraceServiceRequest(
+        _ req: OTLP.ExportTraceServiceRequest
+    ) -> Bytes {
+        var w = ProtoWriter()
+        // field 1 resource_spans (repeated)
+        for rs in req.resourceSpans {
+            let rsb = encodeResourceSpans(rs)
+            w.writeMessage(rsb, fieldNumber: 1)
+        }
+        return w.finish()
+    }
+}
+
+// MARK: - Public entry point
+
+extension OTLP {
+    /// Encode an `ExportTraceServiceRequest` to its protobuf wire form.
+    /// The returned `Bytes` is the body for `HTTP POST /v1/traces` with
+    /// `Content-Type: application/x-protobuf`.
+    public static func encodeTraces(_ request: ExportTraceServiceRequest) -> Bytes {
+        EncodeTraces.encodeExportTraceServiceRequest(request)
+    }
 }

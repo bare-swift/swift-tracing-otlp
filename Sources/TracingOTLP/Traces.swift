@@ -132,4 +132,46 @@ extension OTLP {
             self.code = code
         }
     }
+
+    /// `opentelemetry.proto.trace.v1.ScopeSpans`.
+    public struct ScopeSpans: Sendable, Equatable {
+        public var scope: InstrumentationScope
+        public var spans: [Span]
+        public var schemaURL: String
+
+        public init(
+            scope: InstrumentationScope = InstrumentationScope(),
+            spans: [Span] = [],
+            schemaURL: String = ""
+        ) {
+            self.scope = scope
+            self.spans = spans
+            self.schemaURL = schemaURL
+        }
+    }
+
+    /// `opentelemetry.proto.trace.v1.ResourceSpans`.
+    public struct ResourceSpans: Sendable, Equatable {
+        public var resource: Resource
+        public var scopeSpans: [ScopeSpans]
+        public var schemaURL: String
+
+        public init(
+            resource: Resource = Resource(),
+            scopeSpans: [ScopeSpans] = [],
+            schemaURL: String = ""
+        ) {
+            self.resource = resource
+            self.scopeSpans = scopeSpans
+            self.schemaURL = schemaURL
+        }
+    }
+
+    /// `opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest`.
+    public struct ExportTraceServiceRequest: Sendable, Equatable {
+        public var resourceSpans: [ResourceSpans]
+        public init(resourceSpans: [ResourceSpans] = []) {
+            self.resourceSpans = resourceSpans
+        }
+    }
 }
