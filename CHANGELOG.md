@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-10
+
+### Added
+- `OTLP.Span.init(...startTime: Time.Instant, endTime: Time.Instant, ...)` — convenience initializer accepting `Time.Instant` for the start/end timestamps. Internally translates to `UInt64` wire fields.
+- `OTLP.Span.startTime` / `OTLP.Span.endTime` computed properties returning `Time.Instant`.
+- `OTLP.Span.Event.init(at instant: Time.Instant, ...)` and `OTLP.Span.Event.time` computed property.
+- 5 new tests covering wire-field translation, getter round-trip, and negative-instant clamping (pre-1970 spans clamp to 0; `UInt64` cannot represent them).
+
+### Dependencies
+- New: `swift-time` 0.1.0 — for the `Time.Instant` type used by the helpers.
+
+### Migration
+- Additive only. The existing `startTimeUnixNano: UInt64` field and the canonical `init(...)` continue to work unchanged. Negative `Time.Instant` values clamp to `0` on the wire (pre-1970 spans don't occur in real distributed-tracing data).
+
 ## [0.1.0] - 2026-05-08
 
 ### Added
