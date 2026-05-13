@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-13
+
+### Added
+- `OTLP.TraceContext` value type — W3C Trace Context propagation primitive with `traceID` / `spanID` / `traceFlags` / `traceState` fields.
+- `OTLP.TraceContext.traceparent: String?` — computed property serializing the W3C `traceparent` header (`00-<32-hex-traceID>-<16-hex-spanID>-<2-hex-flags>`). Returns `nil` when trace/span ID lengths are wrong.
+- `OTLP.TraceContext.parse(traceparent:) -> TraceContext?` — strict parser per W3C spec (rejects wrong length, missing dashes, non-`00` version, uppercase hex, all-zero trace/span IDs).
+- `OTLP.TraceContext.isSampled: Bool` — bit 0 of `traceFlags`.
+- 13 new tests covering canonical W3C example serialization + parse, round-trip, length/dash/version/case/zero-ID rejections, flag-bit semantics.
+
+### Dependencies
+- New: `swift-hex` 0.1.0 — for lowercase-hex byte ↔ string conversion.
+
+### Migration
+- Additive only. All v0.2 types, initializers, and helpers unchanged. Existing `OTLP.Span.traceID` / `OTLP.Span.spanID` byte fields are unchanged on the wire; `TraceContext` is a separate propagation type for HTTP-header-level interop, not a replacement.
+
+### Phase 14
+- Tranche 14B of [RFC-0019](https://github.com/bare-swift/bare-swift/blob/main/rfcs/0019-phase-14-anchor-otlp-cross-signal.md). 14C will surface a convenience initializer on `OTLP.LogRecord` taking a `TraceContext` to fill the cross-signal correlation fields.
+
 ## [0.2.0] - 2026-05-10
 
 ### Added

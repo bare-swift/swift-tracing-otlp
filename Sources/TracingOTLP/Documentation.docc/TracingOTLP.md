@@ -30,6 +30,10 @@ The public Swift types mirror the OTLP proto schema 1:1.
 
 - ``TracingOTLP``
 
+### W3C Trace Context
+
+`OTLP.TraceContext` carries `traceID` / `spanID` / `traceFlags` / `traceState` and round-trips the W3C `traceparent` header. See the README for usage.
+
 ### Errors
 
 - ``TracingOTLPError``

@@ -15,7 +15,8 @@ let package = Package(
         .package(url: "https://github.com/bare-swift/swift-bytes.git", from: "0.1.0"),
         .package(url: "https://github.com/bare-swift/swift-varint.git", from: "0.1.0"),
         .package(url: "https://github.com/bare-swift/swift-otlp-exporter.git", from: "0.1.0"),
-        .package(url: "https://github.com/bare-swift/swift-time.git", from: "0.1.0")
+        .package(url: "https://github.com/bare-swift/swift-time.git", from: "0.1.0"),
+        .package(url: "https://github.com/bare-swift/swift-hex.git", from: "0.1.0")
     ],
     targets: [
         .target(
@@ -24,7 +25,8 @@ let package = Package(
                 .product(name: "Bytes", package: "swift-bytes"),
                 .product(name: "Varint", package: "swift-varint"),
                 .product(name: "OTLPExporter", package: "swift-otlp-exporter"),
-                .product(name: "Time", package: "swift-time")
+                .product(name: "Time", package: "swift-time"),
+                .product(name: "Hex", package: "swift-hex")
             ]
         ),
         .testTarget(

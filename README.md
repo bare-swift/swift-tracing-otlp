@@ -11,7 +11,7 @@ Part of the [bare-swift](https://github.com/bare-swift) ecosystem. Phase 3 Tranc
 ## Install
 
 ```swift
-.package(url: "https://github.com/bare-swift/swift-tracing-otlp.git", from: "0.1.0")
+.package(url: "https://github.com/bare-swift/swift-tracing-otlp.git", from: "0.3.0")
 ```
 
 ```swift
@@ -66,9 +66,29 @@ let payload: Bytes = OTLP.encodeTraces(request)
 
 The `OTLP` namespace is defined by swift-otlp-exporter; this package extends it with trace-specific types. Common types (`OTLP.Resource`, `OTLP.InstrumentationScope`, `OTLP.KeyValue`, `OTLP.AnyValue`) come from swift-otlp-exporter and are re-used directly. The proto-encoding internals (`ProtoWriter`, per-message common encoders) are intentionally duplicated to keep this package independently shippable. Wire format produced is byte-identical for the shared message types.
 
+## W3C Trace Context propagation
+
+Since v0.3, `OTLP.TraceContext` carries the four pieces of W3C `traceparent` / `tracestate` state and serializes/parses the header value:
+
+```swift
+let inbound = OTLP.TraceContext.parse(
+    traceparent: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+)!
+// inbound.isSampled == true
+
+let outbound = OTLP.TraceContext(
+    traceID: inbound.traceID,
+    spanID: Bytes([/* new child span ID */]),
+    traceFlags: inbound.traceFlags
+)
+let header: String = outbound.traceparent!  // "00-<...>-<...>-01"
+```
+
+The parser is strict per the W3C spec — version `00` only, lowercase hex, all-zero trace/span IDs rejected.
+
 ## Scope
 
-**v0.1 covers:** OTLP traces over HTTP+protobuf. Full Span schema (16 fields including events and links), all 6 SpanKind values, Status with all 3 codes.
+**v0.3 covers:** OTLP traces over HTTP+protobuf. Full Span schema (16 fields including events and links), all 6 SpanKind values, Status with all 3 codes. `Time.Instant` convenience integration (v0.2). W3C `TraceContext` propagation (v0.3).
 
 **Out of scope (deferred):** gRPC OTLP, JSON OTLP, HTTP transport itself, decoder, sampling, trace/span ID generation, Apple swift-distributed-tracing adapter (Tranche 3B's separate package).
 
